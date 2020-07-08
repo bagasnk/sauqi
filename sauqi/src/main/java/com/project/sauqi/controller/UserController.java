@@ -131,18 +131,19 @@ public class UserController {
     public User ResetPassword(@RequestBody User user){
         User findUser = userRepo.findByEmail(user.getEmail()).get();
         String message = "<h1>Link Recovery Password!</h1>\n ";
-        message +="Silahkan klik <a href=\"http://localhost:3000/resetPassword/"+findUser.getId()+"/"+findUser.getPassword()+"\">link</a> ini untuk reset ulang password anda";
+        message +="Silahkan klik <a href=\"http://localhost:3000/resetPassword/"+findUser.getId()+"/"+findUser.getVerifyToken()+"\">link</a> ini untuk reset ulang password anda";
         emailUtil.sendEmail(user.getEmail(), "Email Confirmation", message);
         return findUser;
     }
 	// user_to_reset
 	
-	@PostMapping("/reset/{userId}")
-    public User getUserById(@PathVariable int userId){
+	@PostMapping("/reset/{userId}/{userVerif}")
+    public User getUserById(@PathVariable int userId, @PathVariable String userVerif){
 //        System.out.println(user.getVerifyToken());
 //        System.out.println(user.getId());
 
         User findUser = userRepo.findById(userId).get();
+        findUser = userRepo.findByVerif(userVerif).get();
         return findUser;
     }
 	
