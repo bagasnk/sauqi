@@ -3,6 +3,8 @@ package com.project.sauqi.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.project.sauqi.dao.CategoriesRepo;
+import com.project.sauqi.dao.PagingRepo;
 import com.project.sauqi.dao.ProductRepo;
 import com.project.sauqi.entity.Categories;
 import com.project.sauqi.entity.Product;
@@ -29,6 +32,9 @@ public class ProductController {
 	
 	@Autowired
 	private CategoriesRepo categoriesRepo;
+	
+	@Autowired
+    private PagingRepo pagingRepo;
 	
 	
 	@GetMapping 
@@ -92,54 +98,69 @@ public class ProductController {
 	}
 	
 	@GetMapping("/{minPrice}/{maxPrice}/{orderBy}/{sortList}")
-	public Iterable<Product> findProductByPrice
+	public Page<Product> findProductByPrice
 		(
 			@PathVariable double minPrice, 
 			@PathVariable double maxPrice, 
 			@RequestParam String productName,
 			@PathVariable String orderBy, 
-			@PathVariable String sortList
+			@PathVariable String sortList,
+			Pageable pageable
 		){
 		if (maxPrice == 0) {
 			maxPrice = 9999999;
 		}
 			if (orderBy.equals("productName") && sortList.equals("asc")) {
-				return productRepo.findProductByPriceOrderByProductNameAsc(minPrice, maxPrice, productName);
+				return productRepo.findProductByPriceOrderByProductNameAsc(minPrice, maxPrice, productName, pageable);
 			}else if (orderBy.equals("productName") && sortList.equals("desc")) {
-				return productRepo.findProductByPriceOrderByProductNameDesc(minPrice, maxPrice, productName);
+				return productRepo.findProductByPriceOrderByProductNameDesc(minPrice, maxPrice, productName, pageable);
 			}else if (orderBy.equals("price") && sortList.equals("asc")) {
-				return productRepo.findProductByPriceOrderByPriceAsc(minPrice, maxPrice, productName);
+				return productRepo.findProductByPriceOrderByPriceAsc(minPrice, maxPrice, productName, pageable);
 			}else{
-				return productRepo.findProductByPriceOrderByPriceDesc(minPrice, maxPrice, productName);
+				return productRepo.findProductByPriceOrderByPriceDesc(minPrice, maxPrice, productName, pageable);
 			}
 		}
 	
 	@GetMapping("/{minPrice}/category/{maxPrice}/{orderBy}/{sortList}")
-	public Iterable<Product> findProductWithFilter
+		public Page<Product> findProductWithFilter
 			(
 			@PathVariable double minPrice, 
 			@PathVariable double maxPrice, 
 			@RequestParam String productName, 
 			@RequestParam String nama, 
 			@PathVariable String orderBy, 
-			@PathVariable String sortList
+			@PathVariable String sortList,
+			Pageable pageable
 			){
 		
 		if (maxPrice == 0) {
 			maxPrice = 9999999;
 		}
 			if (orderBy.equals("productName") && sortList.equals("asc")) {
-				return productRepo.findProductCategoryByPriceOrderByProductNameAsc(minPrice, maxPrice, productName, nama);
+				return productRepo.findProductCategoryByPriceOrderByProductNameAsc(minPrice, maxPrice, productName, nama , pageable);
 			}
 			else if (orderBy.equals("productName") && sortList.equals("desc")) {
-				return productRepo.findProductCategoryByPriceOrderByProductNameDesc(minPrice, maxPrice, productName, nama);
+				return productRepo.findProductCategoryByPriceOrderByProductNameDesc(minPrice, maxPrice, productName, nama, pageable);
 			}
 			else if (orderBy.equals("price") && sortList.equals("asc")) {
-				return productRepo.findProductCategoryByPriceOrderByPriceAsc(minPrice, maxPrice, productName, nama);
+				return productRepo.findProductCategoryByPriceOrderByPriceAsc(minPrice, maxPrice, productName, nama, pageable);
 			}else{
-				return productRepo.findProductCategoryByPriceOrderByPriceDesc(minPrice, maxPrice, productName, nama);
+				return productRepo.findProductCategoryByPriceOrderByPriceDesc(minPrice, maxPrice, productName, nama, pageable);
 			}
 		}
+		
+	@GetMapping("/pages")
+	 public Page<Product> getAllProduct(Pageable pageable) {
+	    return pagingRepo.findAll(pageable);
+	 }
+	
+//	@GetMapping("/pages")
+//	 public Product getAllProduct(Pageable pageable) {
+//		Product findProduct = (Product) pagingRepo.findAll(pageable);
+//	    return productRepo.save(findProduct);
+//	 }
+//	
+	
 }
 
 

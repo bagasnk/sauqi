@@ -11,6 +11,9 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 public class Product {
@@ -29,6 +32,16 @@ public class Product {
 			inverseJoinColumns = @JoinColumn(name = "categories_id"))
 	private List<Categories> categories;
 	
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "product", cascade = CascadeType.ALL)
+    @JsonIgnore
+    private List<Cart> carts;
+	
+	public List<Cart> getCarts() {
+		return carts;
+	}
+	public void setCarts(List<Cart> carts) {
+		this.carts = carts;
+	}
 	public int getId() {
 		return id;
 	}
