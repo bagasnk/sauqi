@@ -9,20 +9,20 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.project.sauqi.dao.ProductRepo;
 import com.project.sauqi.dao.TransactionDetailsRepo;
 import com.project.sauqi.dao.TransactionRepo;
-import com.project.sauqi.dao.UserRepo;
 import com.project.sauqi.entity.Product;
 import com.project.sauqi.entity.Transaction;
-import com.project.sauqi.entity.User;
+import com.project.sauqi.entity.TransactionDetails;
 
 @RestController
-@RequestMapping("/transaction")
+@RequestMapping("/transactionDetails")
 @CrossOrigin
-public class TranscationController {
-
+public class TransactionDetailsController {
+	
 	@Autowired
-	private UserRepo userRepo;
+	private ProductRepo productRepo;
 	
 	@Autowired
     private TransactionDetailsRepo transactionDetailsRepo;
@@ -31,25 +31,17 @@ public class TranscationController {
     private TransactionRepo transactionRepo;
     
     @GetMapping
-    public Iterable<Transaction> getAllTransaction(){
-        return transactionRepo.findAll();
+    public Iterable<TransactionDetails> getAllTransactionDetails(){
+        return transactionDetailsRepo.findAll();
     }
     
-    @GetMapping("/user/{userId}")
-    public Iterable<Transaction> getUserTransactions(@PathVariable int userId){
-        User findUser = userRepo.findById(userId).get();
-        return findUser.getTranscation();
+    @PostMapping("/addTransactionDetails/{transactionId}/{productId}")
+	public TransactionDetails addTransactionDetails(@RequestBody TransactionDetails transactionDetails, @PathVariable int transactionId, @PathVariable int productId) {
+        Transaction findTransaction = transactionRepo.findById(transactionId).get();
+        Product findProduct = productRepo.findById(productId).get();
+        transactionDetails.setTransaction(findTransaction);
+        transactionDetails.setProducts(findProduct);
+        
+        return transactionDetailsRepo.save(transactionDetails);
     }
-    
-    
-    
-    @PostMapping("/addTransaction/{userId}")
-	public Transaction addTransaction(@RequestBody Transaction transaction,@PathVariable int userId) {
-        User findUser = userRepo.findById(userId).get();
-        transaction.setUser(findUser);
-		return transactionRepo.save(transaction);
-	}
-    
-    
-    
 }

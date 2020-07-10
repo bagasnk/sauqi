@@ -11,8 +11,13 @@ import com.project.sauqi.entity.Product;
 public interface ProductRepo extends JpaRepository<Product,Integer>,PagingAndSortingRepository<Product, Integer>{
 	//public Product findByCategory(String category);
 	
+	
+	
 	@Query(value = "SELECT * FROM Product WHERE category = ?", nativeQuery = true)
 	public Iterable<Product> findByCategory(String category);
+	
+	@Query(value = "select * from product where product_name like %?1%",nativeQuery = true)
+	public Page<Product> findProductAdminByName(String productName, Pageable pageable);
 	
 	@Query(value = "SELECT * FROM Product WHERE price <= ?", nativeQuery = true)
 	public Iterable<Product> findProductByMaxPrice(double maxPrice);

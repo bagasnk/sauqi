@@ -11,6 +11,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -33,10 +34,27 @@ public class Product {
 			inverseJoinColumns = @JoinColumn(name = "categories_id"))
 	private List<Categories> categories;
 	
+	
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "product", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<Cart> carts;
 	
+	
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "transaction", cascade = CascadeType.ALL)
+	@JsonIgnore
+	private List<TransactionDetails> transcationDetails;
+	
+	@ManyToOne(cascade = {CascadeType.DETACH,CascadeType.PERSIST,CascadeType.REFRESH})
+	@JoinColumn(name = "pakets_id")
+	@JsonIgnore
+	private Paket paket;
+	
+	public List<TransactionDetails> getTranscationDetails() {
+		return transcationDetails;
+	}
+	public void setTranscationDetails(List<TransactionDetails> transcationDetails) {
+		this.transcationDetails = transcationDetails;
+	}
 	public List<Cart> getCarts() {
 		return carts;
 	}

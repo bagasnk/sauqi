@@ -1,10 +1,24 @@
 package com.project.sauqi.controller;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,7 +29,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.sauqi.dao.CategoriesRepo;
 import com.project.sauqi.dao.PagingRepo;
 import com.project.sauqi.dao.ProductRepo;
@@ -26,6 +45,8 @@ import com.project.sauqi.entity.Product;
 @RequestMapping("/products")
 @CrossOrigin
 public class ProductController {
+	
+	private String uploadPath = System.getProperty("user.dir") + "\\src\\main\\resources\\static\\products\\";
 
 	@Autowired
 	private ProductRepo productRepo;
@@ -54,11 +75,11 @@ public class ProductController {
 		return findProduct;
 	}
 	
-	@PostMapping("/addProduct")
-	public Product addProduct(@RequestBody Product product) {
-		return productRepo.save(product);
-	}
-	
+//	@PostMapping("/addProduct")
+//	public Product addProduct(@RequestBody Product product) {
+//		return productRepo.save(product);
+//	}
+
 	@PostMapping("/{productsId}/categories/{categoriesId}")
 	public Product addCategoryToProducts(@PathVariable int productsId, @PathVariable int categoriesId) {
 		Product findProduct = productRepo.findById(productsId).get();
@@ -90,12 +111,12 @@ public class ProductController {
 		return productRepo.save(findProduct);
 	}
 	
-	@PutMapping("/edit")
-	public Product editProduct(@RequestBody Product product) {
-		Product findProduct= productRepo.findById(product.getId()).get();
-		product.setCategories(findProduct.getCategories());
-		return productRepo.save(product);
-	}
+//	@PutMapping("/edit")
+//	public Product editProduct(@RequestBody Product product) {
+//		Product findProduct= productRepo.findById(product.getId()).get();
+//		product.setCategories(findProduct.getCategories());
+//		return productRepo.save(product);
+//	}
 	
 	@GetMapping("/{minPrice}/{maxPrice}/{orderBy}/{sortList}")
 	public Page<Product> findProductByPrice
@@ -150,9 +171,93 @@ public class ProductController {
 		}
 		
 	@GetMapping("/pages")
-	 public Page<Product> getAllProduct(Pageable pageable) {
-	    return pagingRepo.findAll(pageable);
+	 public Page<Product> getAllProduct(@RequestParam String productName, Pageable pageable){
+	    return productRepo.findProductAdminByName(productName,pageable);
 	 }
+	
+	@PutMapping("/edit/{productId}")
+	public String editProduct(@RequestParam("file") Optional<MultipartFile> file, @RequestParam("productData") String productString ,@PathVariable int productId) throws JsonMappingException, JsonProcessingException {
+		Date date = new Date();
+		Product findProduct = productRepo.findById(productId).get();
+		findProduct = new ObjectMapper().readValue(productString , Product.class); 
+		String fileDownloadUri = findProduct.getImage();
+		
+		if(file.toString() != "Optional.empty") {
+			
+		String fileExtension = file.get().getContentType().split("/")[1];
+		System.out.println(fileExtension);
+		String fileName = "PROD-" + date.getTime() + "." +  fileExtension;
+		
+		Path path = Paths.get(StringUtils.cleanPath(uploadPath)  + fileName);
+		
+		try {
+			Files.copy(file.get().getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath().path("/products/download/")
+				.path(fileName).toUriString();
+		}
+		
+		findProduct.setImage(fileDownloadUri);
+		productRepo.save(findProduct);
+		
+		return fileDownloadUri;
+	}
+	
+	
+	
+	@PostMapping("/addProduct")
+	public String uploadFile(@RequestParam("file") Optional<MultipartFile> file, @RequestParam("productData") String productString) throws JsonMappingException, JsonProcessingException {
+		Date date = new Date();
+		Product product = new ObjectMapper().readValue(productString , Product.class);
+		String fileDownloadUri = "no image";
+		
+		if(file.toString() != "Optional.empty") {
+		String fileExtension = file.get().getContentType().split("/")[1];
+		System.out.println(fileExtension);
+		String newFileName = "PROD-" + date.getTime() + "." +  fileExtension;
+		
+		String fileName = StringUtils.cleanPath(newFileName);
+		
+		Path path = Paths.get(StringUtils.cleanPath(uploadPath)  + fileName);
+		
+		try {
+			Files.copy(file.get().getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath().path("/products/download/")
+				.path(fileName).toUriString();
+		}
+		
+		product.setImage(fileDownloadUri);
+		productRepo.save(product);
+		
+		return fileDownloadUri;
+		}
+		
+		
+	@GetMapping("/download/{fileName:.+}")
+	public ResponseEntity<Object> downloadFile(@PathVariable String fileName){
+		Path path = Paths.get(uploadPath, fileName);
+		Resource resource = null;
+		
+		try {
+			resource = new UrlResource(path.toUri());
+		}catch (MalformedURLException e) {
+			e.printStackTrace();
+		}
+			return ResponseEntity.ok().contentType(MediaType.parseMediaType("application/octet-stream"))
+					.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+					.body(resource);
+		
+	}
+	
+	
+	
 	
 //	@GetMapping("/pages")
 //	 public Product getAllProduct(Pageable pageable) {

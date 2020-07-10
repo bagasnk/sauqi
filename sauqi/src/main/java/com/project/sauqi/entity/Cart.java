@@ -23,6 +23,19 @@ public class Cart {
 	@ManyToOne(cascade = { CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
     @JoinColumn(name = "products_id")
     private Product product;
+	
+	@ManyToOne(cascade = {CascadeType.DETACH, CascadeType.PERSIST, CascadeType.REFRESH})
+	@JoinColumn(name = "pakets_id")
+	private Paket paket;
+	
+
+	public Paket getPaket() {
+		return paket;
+	}
+
+	public void setPaket(Paket paket) {
+		this.paket = paket;
+	}
 
 	public int getId() {
 		return id;

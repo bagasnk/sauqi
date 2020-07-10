@@ -31,6 +31,16 @@ public class User {
     @JsonIgnore
     private List<Cart> carts;
 	
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "user", cascade = CascadeType.ALL)
+	@JsonIgnore
+    private List<Transaction> transcation;
+	
+	public List<Transaction> getTranscation() {
+		return transcation;
+	}
+	public void setTranscation(List<Transaction> transcation) {
+		this.transcation = transcation;
+	}
 	public List<Cart> getCarts() {
 		return carts;
 	}
