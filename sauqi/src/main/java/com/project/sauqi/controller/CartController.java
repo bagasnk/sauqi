@@ -46,15 +46,19 @@ public class CartController {
     public Cart addToCart(@RequestBody Cart cart, @PathVariable int userId, @PathVariable int productId){
         Product findProduct = productRepo.findById(productId).get();
         User findUser = userRepo.findById(userId).get();
+        
+        findProduct.setStock(findProduct.getStock() - cart.getQuantity()); //<<<<<< baru stock user
         cart.setProduct(findProduct);
         cart.setUser(findUser);
         return cartRepo.save(cart);
     }
     
-    @PutMapping("/updateQty/{cartId}")
-    public Cart updateCartQty (@PathVariable int cartId){
+    @PutMapping("/updateQty/{cartId}/{productId}")
+    public Cart updateCartQty (@PathVariable int cartId, @PathVariable int productId){
         Cart findCart = cartRepo.findById(cartId).get();
+        Product findProduct = productRepo.findById(productId).get();
         findCart.setQuantity(findCart.getQuantity()+1);
+        findProduct.setStock(findProduct.getStock()-1);
         return cartRepo.save(findCart);
     }
     
@@ -63,5 +67,14 @@ public class CartController {
 		Cart findCart = cartRepo.findById(cartId).get();
 		cartRepo.deleteById(cartId);
 	}
+    
+    @DeleteMapping("/{cartId}/{productId}")
+    public void deleteCartProduct(@PathVariable int cartId,@PathVariable int productId) {
+    	 Cart findCart = cartRepo.findById(cartId).get();
+         Product findProduct = productRepo.findById(productId).get();
+         findProduct.setStock(findProduct.getStock() + findCart.getQuantity());
+         productRepo.save(findProduct);
+         cartRepo.deleteById(cartId);
+    }
     
 }

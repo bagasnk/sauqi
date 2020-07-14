@@ -19,4 +19,7 @@ public interface UserRepo extends JpaRepository<User,Integer>
 	@Query(value = "SELECT * FROM user WHERE id = ?1 and verify_token=?2", nativeQuery = true)
 	public Optional<User> getResetPassword(int id, String verifytoken);
 	
+	@Query(value = "SELECT * FROM user WHERE id = ?1", nativeQuery = true)
+	public Optional<User> getEmail(int id);
+	
 }

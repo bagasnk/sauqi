@@ -25,6 +25,7 @@ public class Transaction {
 	private String status;
 	private String tanggalBeli;
 	private String tanggalAcc;
+	private String tanggalReject;
 	private String jasaPengiriman;
 	
 	@ManyToOne(cascade = { CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH })
@@ -80,6 +81,15 @@ public class Transaction {
 
 	public void setTanggalAcc(String tanggalAcc) {
 		this.tanggalAcc = tanggalAcc;
+	}
+	
+
+	public String getTanggalReject() {
+		return tanggalReject;
+	}
+
+	public void setTanggalReject(String tanggalReject) {
+		this.tanggalReject = tanggalReject;
 	}
 
 	public String getJasaPengiriman() {

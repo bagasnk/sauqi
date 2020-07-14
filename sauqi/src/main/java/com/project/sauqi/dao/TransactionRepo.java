@@ -15,5 +15,8 @@ public interface TransactionRepo extends JpaRepository <Transaction, Integer>{
 	
 	@Query(value = "select * from transaction where status = ?1",nativeQuery = true)
 	public Iterable<Transaction> findTransaksiByStatus(String status);
+	
+//	@Query(value = "Select email from user where users_id = ?1",nativeQuery = true)
+//	public Iterable<Transaction> findEmailById(int id);
 
 }

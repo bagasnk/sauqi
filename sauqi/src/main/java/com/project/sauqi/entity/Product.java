@@ -27,6 +27,7 @@ public class Product {
 	private String image;
 	private String description;
 	private int stock;
+	private int stockGudang;
 	
 	@ManyToMany(fetch = FetchType.EAGER, cascade = { CascadeType.DETACH, CascadeType.PERSIST,
 			CascadeType.REFRESH })
@@ -103,6 +104,13 @@ public class Product {
 	public void setStock(int stock) {
 		this.stock = stock;
 	}
+	public int getStockGudang() {
+		return stockGudang;
+	}
+	public void setStockGudang(int stockGudang) {
+		this.stockGudang = stockGudang;
+	}
+	
 	
 	
 	
