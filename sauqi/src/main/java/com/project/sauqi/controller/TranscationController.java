@@ -93,7 +93,10 @@ public class TranscationController {
     		for(int i = 0; i < transactionRepo.findById(transactionId).get().getTransactionDetails().size() ; i++ ) {
     			int findQuantity = transactionRepo.findById(transactionId).get().getTransactionDetails().get(i).getQuantity();
     			int findStockGudang = transactionRepo.findById(transactionId).get().getTransactionDetails().get(i).getProducts().getStockGudang();
+    			int findStock = transactionRepo.findById(transactionId).get().getTransactionDetails().get(i).getProducts().getStock();
+    			int findSold = transactionRepo.findById(transactionId).get().getTransactionDetails().get(i).getProducts().getSold();
     			findTransaction.getTransactionDetails().get(i).getProducts().setStockGudang(findStockGudang-findQuantity);
+    			findTransaction.getTransactionDetails().get(i).getProducts().setSold(findSold + findQuantity);
     			System.out.println(findQuantity);
     			System.out.println(findStockGudang);
     		}
@@ -110,27 +113,7 @@ public class TranscationController {
     	return transactionRepo.save(findTransaction);
     	}
     
-    
-//    @PatchMapping("/rejectPermanentTransactionId/{transactionId}")
-//    public Transaction rejectPermanentTransaction(@RequestBody Transaction transaction,@PathVariable int transactionId) {
-//    	Transaction findTransaction = transactionRepo.findById(transactionId).get();
-//    	findTransaction.setStatus(transaction.getStatus());
-//    	
-//    	findTransaction.setTanggalAcc(transaction.getTanggalAcc());
-//    	findTransaction.setTanggalReject(transaction.getTanggalReject());
-//    	
-//    	if(findTransaction.getStatus().equals("success")) {
-//    		for(int i = 0; i < transactionRepo.findById(transactionId).get().getTransactionDetails().size() ; i++ ) {
-//    			int findQuantity = transactionRepo.findById(transactionId).get().getTransactionDetails().get(i).getQuantity();
-//    			int findStock = transactionRepo.findById(transactionId).get().getTransactionDetails().get(i).getProducts().getStockGudang();
-//    			findTransaction.getTransactionDetails().get(i).getProducts().setStockGudang(findStock-findQuantity);;
-//    			System.out.println(findQuantity);
-//    			System.out.println(findStock);
-//    		}
-//    	}
-//    	return transactionRepo.save(findTransaction);
-//    }
-    
+    String message = "";
     @PostMapping("/sendEmailSuccess/{transactionId}")
     @Transactional
     public String emailSuccess(@PathVariable int transactionId){
@@ -140,18 +123,64 @@ public class TranscationController {
         int showTransactionID = transactionRepo.findById(transactionId).get().getId();
         String showTransactionStatus = transactionRepo.findById(transactionId).get().getStatus();
         String showTransactionTglBeli = transactionRepo.findById(transactionId).get().getTanggalBeli();
-        String showTransactionTglReject = transactionRepo.findById(transactionId).get().getTanggalReject();
+        String showTransactionTglSuccess = transactionRepo.findById(transactionId).get().getTanggalAcc();
         int showTransactionTotalPrice = transactionRepo.findById(transactionId).get().getTotalPrice();
         
-        
-        String message = "<h1>TRANSAKSI SUKSES !!</h1>\n ";
-        message +=
-        		"Saudara " + showTransactionFullname + " Terima kasih sudah membeli di JETRO.ID, karena bukti transfer kurang jelas, silahkan ulangi kembali dengan cara"+
-        		" Lihat History => Tab Reject => Upload Ulang Bukti Transfer, Terima Kasih ";
+        message = "<h1>TRANSACTION SUCCESS !! !!</h1>\n ";
+        message += "<h4>Selamat, " + showTransactionFullname + "</h4>";
+        message += "<h4>Transaksi anda dengan No."+ showTransactionID +" telah berhasil di proses dan segera berada di tempat anda</h4>";
+        message += 
+        		" <table>\r\n" + 
+        		"  <tr>\r\n" + 
+        		"    <td>Status</td>\r\n" + 
+        		"    <td>:	"+showTransactionStatus +"</td>\r\n" + 
+        		"  </tr>\r\n" + 
         		
-        		
+				"  <tr>\r\n" + 
+				"    <td>Tanggal Beli</td>\r\n" + 
+				"    <td>:	"+showTransactionTglBeli +"</td>\r\n" + 
+				"  </tr>\r\n" + 
+
+				"  <tr>\r\n" + 
+				"    <td>Tanggal Success</td>\r\n" + 
+				"    <td>:	"+showTransactionTglSuccess +"</td>\r\n" + 
+				"  </tr>\r\n" + 
+
+				"  <tr>\r\n" + 
+				"    <td>Total Price</td>\r\n" + 
+				"    <td>:	"+showTransactionTotalPrice +"</td>\r\n" + 
+				"  </tr>\r\n" +
+        		"</table> <br/><br/>";
+        message += "Dengan detail transaksi sebagai berikut : <br/><br/>";
         
-        emailUtil.sendEmail(findTransaction, "Reject Pembelian", message);
+        transactionRepo.findById(transactionId).get().getTransactionDetails().forEach(val -> {
+        	message += " <table>\r\n" + 
+            		"  <tr>\r\n" + 
+            		"    <td>Product Name</td>\r\n" + 
+            		"    <td>:	"+ val.getProducts().getProductName() +"</td>\r\n" + 
+            		"  </tr>\r\n" + 
+            		
+    				"  <tr>\r\n" + 
+    				"    <td>Price per Item</td>\r\n" + 
+    				"    <td>:	" + val.getProducts().getPrice() +"</td>\r\n" + 
+    				"  </tr>\r\n" + 
+
+    				"  <tr>\r\n" + 
+    				"    <td>Quantity</td>\r\n" + 
+    				"    <td>:	"+	val.getQuantity() +"</td>\r\n" + 
+    				"  </tr>\r\n" + 
+
+    				"  <tr>\r\n" + 
+    				"    <td>Total Price</td>\r\n" + 
+    				"    <td>:	" + val.getTotalPriceProduct() + "</td>\r\n" + 
+    				"  </tr>\r\n" +
+            		"</table> \n";
+        	message += "<br/>";
+        	message += "===================================================";
+        	
+        });
+        
+        emailUtil.sendEmail(findTransaction, "Transaksi Berhasil", message);
         return findTransaction;
     }
     
@@ -166,41 +195,71 @@ public class TranscationController {
         String showTransactionTglBeli = transactionRepo.findById(transactionId).get().getTanggalBeli();
         String showTransactionTglReject = transactionRepo.findById(transactionId).get().getTanggalReject();
         int showTransactionTotalPrice = transactionRepo.findById(transactionId).get().getTotalPrice();
-        
-        
-        String message = "<h1>REJECT PEMBELIAN !!</h1>\n ";
-        message +=
-        		"Saudara " + showTransactionFullname + " Mohon Maaf Transaksi yang anda lakukan kami reject, karena bukti transfer kurang jelas, silahkan ulangi kembali dengan cara"+
-        		" Lihat History => Tab Reject => Upload Ulang Bukti Transfer, Terima Kasih " +
+        message = "<h1>REJECT PEMBELIAN !!</h1>\n ";
+        message+= "Saudara " + showTransactionFullname + " Mohon Maaf Transaksi yang anda lakukan kami reject, karena bukti transfer kurang jelas, silahkan ulangi kembali dengan cara "+
+        		" Lihat History -> Tab Reject -> Upload Ulang Bukti Transfer, Terima Kasih <br/>";
+        message+="Berikut rincian transaksi yang kami reject : <br/><br/>";
+        message+=
         		" <table>\r\n" + 
         		"  <tr>\r\n" + 
         		"    <td>Transation Id</td>\r\n" + 
         		"    <td>:	"+showTransactionID+"</td> \r\n" + 
         		"  </tr>\r\n" + 
-        		
         		"  <tr>\r\n" + 
         		"    <td>Status</td>\r\n" + 
         		"    <td>:	"+showTransactionStatus +"</td>\r\n" + 
         		"  </tr>\r\n" + 
-        		
 				"  <tr>\r\n" + 
 				"    <td>Tanggal Beli</td>\r\n" + 
 				"    <td>:	"+showTransactionTglBeli +"</td>\r\n" + 
 				"  </tr>\r\n" + 
-
 				"  <tr>\r\n" + 
 				"    <td>Tanggal Reject</td>\r\n" + 
 				"    <td>:	"+showTransactionTglReject +"</td>\r\n" + 
 				"  </tr>\r\n" + 
-
 				"  <tr>\r\n" + 
 				"    <td>Total Price</td>\r\n" + 
 				"    <td>:	"+showTransactionTotalPrice +"</td>\r\n" + 
 				"  </tr>\r\n" + 
         		"</table> \n\n";
-        		
-        
         emailUtil.sendEmail(findTransaction, "Reject Pembelian", message);
+        return findTransaction;
+    }
+   
+    String imageDesc = "";
+    @PostMapping("/sendEmailRejectPermanent/{transactionId}")
+    @Transactional
+    public String emailRejectPermanent(@PathVariable int transactionId) {
+    	String findTransaction = transactionRepo.findById(transactionId).get().getUser().getEmail();
+        String showTransactionFullname = transactionRepo.findById(transactionId).get().getUser().getFullname();
+        int showTransactionID = transactionRepo.findById(transactionId).get().getId();
+        String showTransactionStatus = transactionRepo.findById(transactionId).get().getStatus();
+        String showTransactionTglBeli = transactionRepo.findById(transactionId).get().getTanggalBeli();
+        int showTransactionTotalPrice = transactionRepo.findById(transactionId).get().getTotalPrice();
+        message = "<h1>REJECT PERMANENT PEMBELIAN !!</h1>\n ";
+        message+= "Saudara " + showTransactionFullname + " Mohon Maaf Transaksi yang anda lakukan kami reject permanent ";
+        message+= "Dikarenakan : anda belum melakukan perubahan bukti transfer / tidak ada bukti <br/>";
+        message+="Berikut rincian transaksi yang kami reject : <br/><br/>";
+        message+=
+        		" <table>\r\n" + 
+        		"  <tr>\r\n" + 
+        		"    <td>Transation Id</td>\r\n" + 
+        		"    <td>:	"+showTransactionID+"</td> \r\n" + 
+        		"  </tr>\r\n" + 
+        		"  <tr>\r\n" + 
+        		"    <td>Status</td>\r\n" + 
+        		"    <td>:	"+showTransactionStatus +"</td>\r\n" + 
+        		"  </tr>\r\n" + 
+				"  <tr>\r\n" + 
+				"    <td>Tanggal Beli</td>\r\n" + 
+				"    <td>:	"+showTransactionTglBeli +"</td>\r\n" + 
+				"  </tr>\r\n" + 
+				"  <tr>\r\n" + 
+				"    <td>Total Price</td>\r\n" + 
+				"    <td>:	"+showTransactionTotalPrice +"</td>\r\n" + 
+				"  </tr>\r\n" + 
+        		"</table> \n\n";
+        emailUtil.sendEmail(findTransaction, "Reject Permanent Pembelian", message);
         return findTransaction;
     }
     

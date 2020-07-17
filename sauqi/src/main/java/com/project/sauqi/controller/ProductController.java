@@ -25,7 +25,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -176,7 +175,7 @@ public class ProductController {
 	 }
 	
 	@PutMapping("/edit/{productId}")
-	public String editProduct(@RequestParam("file") Optional<MultipartFile> file, @RequestParam("productData") String productString ,@PathVariable int productId) throws JsonMappingException, JsonProcessingException {
+	public String editProduct(@RequestParam("file") Optional<MultipartFile> file, @RequestParam("productData") String productString ,@PathVariable int productId , @RequestParam int stockGudangFE) throws JsonMappingException, JsonProcessingException {
 		Date date = new Date();
 		Product findProduct = productRepo.findById(productId).get();
 		findProduct = new ObjectMapper().readValue(productString , Product.class); 
@@ -187,22 +186,22 @@ public class ProductController {
 		String fileExtension = file.get().getContentType().split("/")[1];
 		System.out.println(fileExtension);
 		String fileName = "PROD-" + date.getTime() + "." +  fileExtension;
-		
 		Path path = Paths.get(StringUtils.cleanPath(uploadPath)  + fileName);
-		
 		try {
 			Files.copy(file.get().getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
 		fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath().path("/products/download/")
 				.path(fileName).toUriString();
 		}
-		
 		findProduct.setImage(fileDownloadUri);
+		System.out.println(stockGudangFE + " " + findProduct.getStock() + " " + findProduct.getStockGudang());
+		if(findProduct.getStock() != findProduct.getStockGudang()) {
+			findProduct.setStock(findProduct.getStockGudang() - (stockGudangFE - findProduct.getStock()));
+			findProduct.setStockGudang(findProduct.getStockGudang());
+		}
 		productRepo.save(findProduct);
-		
 		return fileDownloadUri;
 	}
 	
@@ -234,6 +233,7 @@ public class ProductController {
 		}
 		
 		product.setImage(fileDownloadUri);
+		product.setStock(product.getStockGudang());
 		productRepo.save(product);
 		
 		return fileDownloadUri;
@@ -256,8 +256,43 @@ public class ProductController {
 		
 	}
 	
+	@GetMapping("/report/{minPrice}/{maxPrice}")
+	public Iterable<Product> findProductforCharts
+		(
+			@PathVariable double minPrice, 
+			@PathVariable double maxPrice, 
+			@RequestParam String productName,
+			@RequestParam String sortList
+		){
+		if (maxPrice == 0) {
+			maxPrice = 9999999;
+		}
+			if (sortList.equals("asc")) {
+				return productRepo.findProductforChartAsc(minPrice, maxPrice, productName);
+			}else {
+				return productRepo.findProductforChartDesc(minPrice, maxPrice, productName);
+			}
+		}
 	
-	
+	@GetMapping("/report/{minPrice}/category/{maxPrice}")
+		public Iterable<Product> findProductWithCategoryforCharts
+			(
+			@PathVariable double minPrice, 
+			@PathVariable double maxPrice, 
+			@RequestParam String productName, 
+			@RequestParam String nama, 
+			@RequestParam String sortList
+			){
+		
+		if (maxPrice == 0) {
+			maxPrice = 9999999;
+		}
+			if (sortList.equals("asc")) {
+				return productRepo.findProductCategoryforChartAsc(minPrice, maxPrice, productName, nama);
+			}else {
+				return productRepo.findProductCategoryforChartDesc(minPrice, maxPrice, productName, nama);
+			}
+		}
 	
 //	@GetMapping("/pages")
 //	 public Product getAllProduct(Pageable pageable) {

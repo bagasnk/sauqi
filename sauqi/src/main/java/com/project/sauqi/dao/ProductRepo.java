@@ -47,4 +47,19 @@ public interface ProductRepo extends JpaRepository<Product,Integer>,PagingAndSor
 
 	@Query(value = "select * from prodcat pc join product p on p.id = pc.products_id join categories c on c.id = pc.categories_id where p.price>=?1 and p.price<= ?2 and p.product_name like %?3% and c.nama=?4 order by price desc", nativeQuery = true)
 	public Page<Product> findProductCategoryByPriceOrderByPriceDesc(double minPrice, double maxPrice, String productName, String nama,Pageable pageable);
+
+	
+	
+	
+	@Query(value = "select * from product where price >=?1 and price <= ?2 and product_name like %?3% order by sold asc",nativeQuery = true)
+	public Iterable<Product> findProductforChartAsc(double minPrice,double maxPrice, String productName);
+	
+	@Query(value = "select * from product where price >=?1 and price <= ?2 and product_name like %?3% order by sold desc",nativeQuery = true)
+	public Iterable<Product> findProductforChartDesc(double minPrice,double maxPrice, String productName);
+	
+	@Query(value = "select * from prodcat pc join product p on p.id = pc.products_id join categories c on c.id = pc.categories_id where p.price>=?1 and p.price<= ?2 and p.product_name like %?3% and c.nama=?4 order by sold asc", nativeQuery = true)
+	public Iterable<Product> findProductCategoryforChartAsc(double minPrice, double maxPrice, String productName, String nama);
+
+	@Query(value = "select * from prodcat pc join product p on p.id = pc.products_id join categories c on c.id = pc.categories_id where p.price>=?1 and p.price<= ?2 and p.product_name like %?3% and c.nama=?4 order by sold desc", nativeQuery = true)
+	public Iterable<Product> findProductCategoryforChartDesc(double minPrice, double maxPrice, String productName, String nama);
 }

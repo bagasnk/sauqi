@@ -45,9 +45,12 @@ public class UserController {
 	@PostMapping
 	public User registerUser(@RequestBody User user) {
 		Optional<User> findUser = userRepo.findByUsername(user.getUsername());
+		Optional<User> findEmail = userRepo.findByEmail(user.getEmail());
 		if (findUser.toString() != "Optional.empty") {
 			throw new RuntimeException("Username exists!");
-		}else {
+		}else if(findEmail.toString() != "Optional.empty"){
+			throw new RuntimeException("Email exists!");
+		}else{
 			String encodedPassword = pwEncoder.encode(user.getPassword());
 			String verifyToken = pwEncoder.encode(user.getUsername() + user.getEmail());
 			
@@ -97,14 +100,19 @@ public class UserController {
 	public User getLoginUser(@RequestParam String username,@RequestParam String password) {
 		User findUser = userRepo.findByUsername(username).get();
 		Optional<User> findUserName = userRepo.findByUsername(username);
+		boolean findVerifyUser = userRepo.findByUsername(username).get().isVerified();
 		
 		
 		if(findUserName.toString() != "Optional.empty") {
+			if(findVerifyUser == false) {
+				throw new RuntimeException("Akun anda belum terverifikasi silahkan cek email");
+			}else {
 			if(pwEncoder.matches(password, findUser.getPassword())) {
 				findUser.setPassword(null);
 				return findUser;
 			}else{
 				throw new RuntimeException("Password salah!");
+			}
 			}
 			
 		}else{
