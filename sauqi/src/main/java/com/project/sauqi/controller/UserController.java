@@ -102,11 +102,10 @@ public class UserController {
 		Optional<User> findUserName = userRepo.findByUsername(username);
 		boolean findVerifyUser = userRepo.findByUsername(username).get().isVerified();
 		
-		
 		if(findUserName.toString() != "Optional.empty") {
 			if(findVerifyUser == false) {
-				throw new RuntimeException("Akun anda belum terverifikasi silahkan cek email");
-			}else {
+				throw new RuntimeException("Akun anda belum terverifikasi silahkan cek email untuk verifikasi");
+			}else{
 			if(pwEncoder.matches(password, findUser.getPassword())) {
 				findUser.setPassword(null);
 				return findUser;
