@@ -12,9 +12,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.project.sauqi.dao.CartRepo;
+import com.project.sauqi.dao.PaketRepo;
 import com.project.sauqi.dao.ProductRepo;
 import com.project.sauqi.dao.UserRepo;
 import com.project.sauqi.entity.Cart;
+import com.project.sauqi.entity.Paket;
 import com.project.sauqi.entity.Product;
 import com.project.sauqi.entity.User;
 
@@ -31,6 +33,9 @@ public class CartController {
 
     @Autowired
     private CartRepo cartRepo;
+    
+    @Autowired
+    private PaketRepo paketRepo;
 
     @GetMapping
     public Iterable<Cart> getAllCart(){
@@ -50,6 +55,22 @@ public class CartController {
         findProduct.setStock(findProduct.getStock() - cart.getQuantity()); //<<<<<< baru stock user
         cart.setProduct(findProduct);
         cart.setUser(findUser);
+        cart.setPaket(null);
+        return cartRepo.save(cart);
+    }
+    
+    //PAKET
+    @PostMapping("/addCartPaket/{userId}/{paketId}")
+    public Cart addToCartPaket(@RequestBody Cart cart, @PathVariable int userId, @PathVariable int paketId){
+        Paket findPaket = paketRepo.findById(paketId).get();
+        User findUser = userRepo.findById(userId).get();
+        
+        findPaket.getPaketDetails().forEach(val -> {
+        	val.getProducts().setStock(val.getProducts().getStock() - cart.getQuantity());
+        	
+        });
+        cart.setPaket(findPaket);
+        cart.setUser(findUser);
         return cartRepo.save(cart);
     }
     
@@ -59,6 +80,17 @@ public class CartController {
         Product findProduct = productRepo.findById(productId).get();
         findCart.setQuantity(findCart.getQuantity()+1);
         findProduct.setStock(findProduct.getStock()-1);
+        return cartRepo.save(findCart);
+    }
+    
+    @PutMapping("/updateQtyPaket/{cartId}/{paketId}")
+    public Cart updateCartQtyPaket (@PathVariable int cartId, @PathVariable int paketId){
+        Cart findCart = cartRepo.findById(cartId).get();
+        Paket findPaket = paketRepo.findById(paketId).get();
+        findCart.setQuantity(findCart.getQuantity()+1);
+        findPaket.getPaketDetails().forEach(val -> {
+        	val.getProducts().setStock(val.getProducts().getStock() - 1);
+        });
         return cartRepo.save(findCart);
     }
     

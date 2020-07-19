@@ -21,15 +21,30 @@ public class Paket {
 	private String paketName;
 	private double paketPrice;
 	private String imagePaket;
+	private String reviewPaket;
 	private int stock;
-	private int isSold;
 	
-	@OneToMany(fetch = FetchType.LAZY, mappedBy="paket",cascade = CascadeType.ALL)
-	private List<Product> products;
+	
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "paket", cascade = CascadeType.ALL)
+	private List<PaketDetails> paketDetails;
 	
 	@OneToMany(fetch = FetchType.LAZY, mappedBy="paket",cascade = CascadeType.ALL)
 	@JsonIgnore
 	private List<Cart> carts;
+	
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "transaction", cascade = CascadeType.ALL)
+	@JsonIgnore
+	private List<TransactionDetails> transcationDetails;
+	
+	
+
+	public List<TransactionDetails> getTranscationDetails() {
+		return transcationDetails;
+	}
+
+	public void setTranscationDetails(List<TransactionDetails> transcationDetails) {
+		this.transcationDetails = transcationDetails;
+	}
 
 	public int getId() {
 		return id;
@@ -49,14 +64,6 @@ public class Paket {
 
 	public int getStock() {
 		return stock;
-	}
-
-	public int getIsSold() {
-		return isSold;
-	}
-
-	public List<Product> getProducts() {
-		return products;
 	}
 
 	public List<Cart> getCarts() {
@@ -83,18 +90,25 @@ public class Paket {
 		this.stock = stock;
 	}
 
-	public void setIsSold(int isSold) {
-		this.isSold = isSold;
-	}
-
-	public void setProducts(List<Product> products) {
-		this.products = products;
-	}
-
 	public void setCarts(List<Cart> carts) {
 		this.carts = carts;
 	}
-	
-	
 
+	public List<PaketDetails> getPaketDetails() {
+		return paketDetails;
+	}
+
+	public void setPaketDetails(List<PaketDetails> paketDetails) {
+		this.paketDetails = paketDetails;
+	}
+
+	public String getReviewPaket() {
+		return reviewPaket;
+	}
+
+	public void setReviewPaket(String reviewPaket) {
+		this.reviewPaket = reviewPaket;
+	}
+
+	
 }

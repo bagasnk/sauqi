@@ -52,7 +52,7 @@ public class UserController {
 			throw new RuntimeException("Email exists!");
 		}else{
 			String encodedPassword = pwEncoder.encode(user.getPassword());
-			String verifyToken = pwEncoder.encode(user.getUsername() + user.getEmail());
+			String verifyToken = pwEncoder.encode(user.getUsername() + user.getEmail()).replace("/", "");
 			
 			user.setPassword(encodedPassword);
 			user.setVerified(false);

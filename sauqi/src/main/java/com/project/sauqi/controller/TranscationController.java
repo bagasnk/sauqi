@@ -14,12 +14,13 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -66,12 +67,12 @@ public class TranscationController {
     @GetMapping("/user/{userId}")
     public Iterable<Transaction> getUserTransactions(@PathVariable int userId, @RequestParam String status){
         User findUser = userRepo.findById(userId).get();
-        return transactionRepo.findTransaksiByUserIdAndStatus(userId, status);
+        return transactionRepo.findTransaksiByUserIdAndStatus(userId,status);
     }
     
     @GetMapping
-    public Iterable<Transaction> getTransactions(@RequestParam String status){
-    	return transactionRepo.findTransaksiByStatus(status);
+    public Page<Transaction> getTransactions(@RequestParam String status,Pageable pageable){
+    	return transactionRepo.findTransaksiByStatus(status,pageable);
     }
     
     @PostMapping("/addTransaction/{userId}")
@@ -90,16 +91,37 @@ public class TranscationController {
     	findTransaction.setTanggalReject(transaction.getTanggalReject());
     	
     	if(findTransaction.getStatus().equals("success")) {
-    		for(int i = 0; i < transactionRepo.findById(transactionId).get().getTransactionDetails().size() ; i++ ) {
-    			int findQuantity = transactionRepo.findById(transactionId).get().getTransactionDetails().get(i).getQuantity();
-    			int findStockGudang = transactionRepo.findById(transactionId).get().getTransactionDetails().get(i).getProducts().getStockGudang();
-    			int findStock = transactionRepo.findById(transactionId).get().getTransactionDetails().get(i).getProducts().getStock();
-    			int findSold = transactionRepo.findById(transactionId).get().getTransactionDetails().get(i).getProducts().getSold();
-    			findTransaction.getTransactionDetails().get(i).getProducts().setStockGudang(findStockGudang-findQuantity);
-    			findTransaction.getTransactionDetails().get(i).getProducts().setSold(findSold + findQuantity);
-    			System.out.println(findQuantity);
-    			System.out.println(findStockGudang);
-    		}
+    		findTransaction.getTransactionDetails().forEach(val -> {
+    			if(val.getProducts() != null) {
+    				int findQuantity = val.getQuantity();
+	    			int findStockGudang = val.getProducts().getStockGudang();
+	    			int findStock = val.getProducts().getStock();
+	    			int findSold = val.getProducts().getSold();
+	    			val.getProducts().setStockGudang(findStockGudang-findQuantity);
+	    			val.getProducts().setSold(findSold + findQuantity);
+	    			System.out.println(findQuantity);
+	    			System.out.println(findStockGudang);
+    				
+//    				for(int i = 0; i < transactionRepo.findById(transactionId).get().getTransactionDetails().size() ; i++ ) {
+//    	    			int findQuantity = transactionRepo.findById(transactionId).get().getTransactionDetails().get(i).getQuantity();
+//    	    			int findStockGudang = transactionRepo.findById(transactionId).get().getTransactionDetails().get(i).getProducts().getStockGudang();
+//    	    			int findStock = transactionRepo.findById(transactionId).get().getTransactionDetails().get(i).getProducts().getStock();
+//    	    			int findSold = transactionRepo.findById(transactionId).get().getTransactionDetails().get(i).getProducts().getSold();
+//    	    			findTransaction.getTransactionDetails().get(i).getProducts().setStockGudang(findStockGudang-findQuantity);
+//    	    			findTransaction.getTransactionDetails().get(i).getProducts().setSold(findSold + findQuantity);
+//    	    			System.out.println(findQuantity);
+//    	    			System.out.println(findStockGudang);
+//    	    		}
+    			}else{
+    					int findQuantityPaket = val.getQuantity();
+    					int findStockPaket = val.getPaket().getStock();
+//    					findTransaction.getTransactionDetails().get(i).getPaket().setStock();
+//    					val.getPaket().getPaketDetails().forEach(value -> {
+//    					value.getProducts().setStockGudang(value.getProducts().getStockGudang() - val.getQuantity());
+//    				});
+    			}
+    		});
+    		
     	}else if(findTransaction.getStatus().equals("rejectPermanent")) {
     		for(int i = 0; i < transactionRepo.findById(transactionId).get().getTransactionDetails().size() ; i++ ) {
     			int findQuantity = transactionRepo.findById(transactionId).get().getTransactionDetails().get(i).getQuantity();
